@@ -290,39 +290,6 @@ class NumberFormat extends Supervisor
             self::$builtInFormats[48] = '##0.0E+0';
             self::$builtInFormats[49] = '@';
 
-            // CHT
-            self::$builtInFormats[27] = '[$-404]e/m/d';
-            self::$builtInFormats[30] = 'm/d/yy';
-            self::$builtInFormats[36] = '[$-404]e/m/d';
-            self::$builtInFormats[50] = '[$-404]e/m/d';
-            self::$builtInFormats[57] = '[$-404]e/m/d';
-
-            // THA
-            self::$builtInFormats[59] = 't0';
-            self::$builtInFormats[60] = 't0.00';
-            self::$builtInFormats[61] = 't#,##0';
-            self::$builtInFormats[62] = 't#,##0.00';
-            self::$builtInFormats[67] = 't0%';
-            self::$builtInFormats[68] = 't0.00%';
-            self::$builtInFormats[69] = 't# ?/?';
-            self::$builtInFormats[70] = 't# ??/??';
-
-            // JPN
-            self::$builtInFormats[28] = '[$-411]ggge"年"m"月"d"日"';
-            self::$builtInFormats[29] = '[$-411]ggge"年"m"月"d"日"';
-            self::$builtInFormats[31] = 'yyyy"年"m"月"d"日"';
-            self::$builtInFormats[32] = 'h"時"mm"分"';
-            self::$builtInFormats[33] = 'h"時"mm"分"ss"秒"';
-            self::$builtInFormats[34] = 'yyyy"年"m"月"';
-            self::$builtInFormats[35] = 'm"月"d"日"';
-            self::$builtInFormats[51] = '[$-411]ggge"年"m"月"d"日"';
-            self::$builtInFormats[52] = 'yyyy"年"m"月"';
-            self::$builtInFormats[53] = 'm"月"d"日"';
-            self::$builtInFormats[54] = '[$-411]ggge"年"m"月"d"日"';
-            self::$builtInFormats[55] = 'yyyy"年"m"月"';
-            self::$builtInFormats[56] = 'm"月"d"日"';
-            self::$builtInFormats[58] = '[$-411]ggge"年"m"月"d"日"';
-
             // Flip array (for faster lookups)
             self::$flippedBuiltInFormats = array_flip(self::$builtInFormats);
         }
@@ -843,7 +810,7 @@ class NumberFormat extends Supervisor
 
         // In Excel formats, "_" is used to add spacing,
         //    The following character indicates the size of the spacing, which we can't do in HTML, so we just use a standard space
-        $format = preg_replace('/_./', ' ', $format);
+        $format = preg_replace('/_./u', ' ', $format);
 
         // Let's begin inspecting the format and converting the value to a formatted string
 

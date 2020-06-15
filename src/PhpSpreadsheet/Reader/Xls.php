@@ -640,7 +640,7 @@ class Xls extends BaseReader
 
         // initialize
         $this->pos = 0;
-        $this->codepage = 'CP1252';
+        $this->codepage = 'CP1251';
         $this->formats = [];
         $this->objFonts = [];
         $this->palette = [];
@@ -1391,7 +1391,7 @@ class Xls extends BaseReader
         $countProperties = self::getInt4d($this->summaryInformation, $secOffset + 4);
 
         // initialize code page (used to resolve string values)
-        $codePage = 'CP1252';
+        $codePage = 'CP1251';
 
         // offset: ($secOffset+8); size: var
         // loop through property decarations and properties
@@ -1538,7 +1538,7 @@ class Xls extends BaseReader
         $countProperties = self::getInt4d($this->documentSummaryInformation, $secOffset + 4);
 
         // initialize code page (used to resolve string values)
-        $codePage = 'CP1252';
+        $codePage = 'CP1251';
 
         //    offset: ($secOffset+8);    size: var
         //    loop through property decarations and properties
@@ -3052,6 +3052,7 @@ class Xls extends BaseReader
                     // repeated option flags
                     // OpenOffice.org documentation 5.21
                     $option = ord($recordData[$pos]);
+                    $processedPos = $pos; //Копия указателя на прочитанные данные потока
                     ++$pos;
 
                     if ($isCompressed && ($option == 0)) {
@@ -3094,6 +3095,11 @@ class Xls extends BaseReader
                     }
 
                     $pos += $len;
+                    $posToProcess = $pos;//Копия указателя на данные потока для чтения
+                    if($processedPos === $posToProcess) {
+                        //Если указатели равны - имеем бесонечный цикл
+                        throw new Exception("Endless cycle");
+                    }
                 }
             }
 
