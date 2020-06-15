@@ -3,13 +3,14 @@
 namespace PhpOffice\PhpSpreadsheetTests\Reader;
 
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
+use PhpOffice\PhpSpreadsheet\Document\Properties;
 use PhpOffice\PhpSpreadsheet\Reader\Ods;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Font;
 use PHPUnit\Framework\TestCase;
 
 /**
- * @todo The class doesn't read the bold/italic/underline properties (rich text)
+ * @TODO The class doesn't read the bold/italic/underline properties (rich text)
  */
 class OdsTest extends TestCase
 {
@@ -29,7 +30,7 @@ class OdsTest extends TestCase
     private function loadOdsTestFile()
     {
         if (!$this->spreadsheetOdsTest) {
-            $filename = __DIR__ . '/../../../samples/templates/OOCalcTest.ods';
+            $filename = 'samples/templates/OOCalcTest.ods';
 
             // Load into this instance
             $reader = new Ods();
@@ -45,7 +46,7 @@ class OdsTest extends TestCase
     protected function loadDataFile()
     {
         if (!$this->spreadsheetData) {
-            $filename = __DIR__ . '/../../data/Reader/Ods/data.ods';
+            $filename = 'tests/data/Reader/Ods/data.ods';
 
             // Load into this instance
             $reader = new Ods();
@@ -55,9 +56,9 @@ class OdsTest extends TestCase
         return $this->spreadsheetData;
     }
 
-    public function testReadFileProperties()
+    public function testReadFileProperties(): void
     {
-        $filename = __DIR__ . '/../../data/Reader/Ods/data.ods';
+        $filename = 'tests/data/Reader/Ods/data.ods';
 
         // Load into this instance
         $reader = new Ods();
@@ -70,7 +71,7 @@ class OdsTest extends TestCase
         ], $reader->listWorksheetNames($filename));
     }
 
-    public function testLoadWorksheets()
+    public function testLoadWorksheets(): void
     {
         $spreadsheet = $this->loadDataFile();
 
@@ -85,7 +86,7 @@ class OdsTest extends TestCase
         self::assertInstanceOf('PhpOffice\PhpSpreadsheet\Worksheet\Worksheet', $secondSheet);
     }
 
-    public function testReadValueAndComments()
+    public function testReadValueAndComments(): void
     {
         $spreadsheet = $this->loadOdsTestFile();
 
@@ -150,7 +151,7 @@ class OdsTest extends TestCase
         self::assertEquals(20, $firstSheet->getCell('A5')->getValue());
     }
 
-    public function testReadColors()
+    public function testReadColors(): void
     {
         $spreadsheet = $this->loadOdsTestFile();
         $firstSheet = $spreadsheet->getSheet(0);
@@ -164,7 +165,7 @@ class OdsTest extends TestCase
         self::assertEquals('FF000000', $style->getFill()->getEndColor()->getARGB());
     }
 
-    public function testReadRichText()
+    public function testReadRichText(): void
     {
         $spreadsheet = $this->loadOdsTestFile();
         $firstSheet = $spreadsheet->getSheet(0);
@@ -176,7 +177,7 @@ class OdsTest extends TestCase
         );
     }
 
-    public function testReadCellsWithRepeatedSpaces()
+    public function testReadCellsWithRepeatedSpaces(): void
     {
         $spreadsheet = $this->loadDataFile();
         $firstSheet = $spreadsheet->getSheet(0);
@@ -187,7 +188,7 @@ class OdsTest extends TestCase
         self::assertEquals("test with new \nLines", $firstSheet->getCell('A11')->getValue());
     }
 
-    public function testReadHyperlinks()
+    public function testReadHyperlinks(): void
     {
         $spreadsheet = $this->loadOdsTestFile();
         $firstSheet = $spreadsheet->getSheet(0);
@@ -201,9 +202,9 @@ class OdsTest extends TestCase
 
     // Below some test for features not implemented yet
 
-    public function testReadBoldItalicUnderline()
+    public function testReadBoldItalicUnderline(): void
     {
-        $this->markTestIncomplete('Features not implemented yet');
+        self::markTestIncomplete('Features not implemented yet');
 
         $spreadsheet = $this->loadOdsTestFile();
         $firstSheet = $spreadsheet->getSheet(0);
@@ -221,5 +222,47 @@ class OdsTest extends TestCase
         $style = $firstSheet->getCell('E1')->getStyle();
         self::assertTrue($style->getFont()->getBold());
         self::assertTrue($style->getFont()->getItalic());
+    }
+
+    public function testLoadOdsWorkbookProperties(): void
+    {
+        $customPropertySet = [
+            'Owner' => ['type' => Properties::PROPERTY_TYPE_STRING, 'value' => 'PHPOffice'],
+            'Tested' => ['type' => Properties::PROPERTY_TYPE_BOOLEAN, 'value' => true],
+            'Counter' => ['type' => Properties::PROPERTY_TYPE_FLOAT, 'value' => 10.0],
+            'TestDate' => ['type' => Properties::PROPERTY_TYPE_DATE, 'value' => '2019-06-30'],
+            'HereAndNow' => ['type' => Properties::PROPERTY_TYPE_DATE, 'value' => '2019-06-30'],
+        ];
+
+        $filename = 'tests/data/Reader/Ods/propertyTest.ods';
+        $reader = new Ods();
+        $spreadsheet = $reader->load($filename);
+
+        $properties = $spreadsheet->getProperties();
+        // Core Properties
+//        self::assertSame('Mark Baker', $properties->getCreator());
+        self::assertSame('Property Test File', $properties->getTitle());
+        self::assertSame('Testing for Properties', $properties->getSubject());
+        self::assertSame('TEST ODS PHPSpreadsheet', $properties->getKeywords());
+
+        // Extended Properties
+//        self::assertSame('PHPOffice', $properties->getCompany());
+//        self::assertSame('The Big Boss', $properties->getManager());
+
+        // Custom Properties
+        $customProperties = $properties->getCustomProperties();
+        self::assertIsArray($customProperties);
+        $customProperties = array_flip($customProperties);
+        self::assertArrayHasKey('TestDate', $customProperties);
+
+        foreach ($customPropertySet as $propertyName => $testData) {
+            self::assertTrue($properties->isCustomPropertySet($propertyName));
+            self::assertSame($testData['type'], $properties->getCustomPropertyType($propertyName));
+            if ($properties->getCustomPropertyType($propertyName) == Properties::PROPERTY_TYPE_DATE) {
+                self::assertSame($testData['value'], date('Y-m-d', $properties->getCustomPropertyValue($propertyName)));
+            } else {
+                self::assertSame($testData['value'], $properties->getCustomPropertyValue($propertyName));
+            }
+        }
     }
 }
